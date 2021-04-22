@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-22
-Last Modified: 2021-03-24
+Last Modified: 2021-04-02
 	content: 
 '''
 ''' 重命名 labelme 标注的文件，方便后续的处理 
@@ -104,8 +104,8 @@ if __name__=='__main__':
     # rm_part_of_foldername(path, r'PauliRGB-')
 
     
-    path = r'data/SAR_CD/GF3/label/E130_N34_日本鞍手/降轨/4'
-    regular_folder_structure(path)
+    path = r'data/SAR_CD/GF3/label/E115_N39_中国河北/降轨'
+    # regular_folder_structure(path)
     for fdr in os.listdir(path):
         fdr = osp.join(path, fdr)
         if osp.isdir(fdr):

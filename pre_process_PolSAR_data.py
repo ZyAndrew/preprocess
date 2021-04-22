@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-25
-Last Modified: 2021-03-29
+Last Modified: 2021-04-19
 '''
 ''' 预处理极化SAR数据
     1) 将一整张图分成多个小 patch 
@@ -20,7 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def hoekman_and_norm(src_path:str)->None:
-    ''' hoekman decomposition, normalization as pauliRGB, and save to file
+    ''' hoekman decomposition, normalization as pauliRGB, and save to file, the new version is hoekman() func.
     @in     -src_path       -source path, where should contains 'C3' folder
     '''
     if 'C3' in os.listdir(src_path):
@@ -40,6 +40,41 @@ def hoekman_and_norm(src_path:str)->None:
             # plt.savefig(osp.join(dst_path, f'log-hist-{ii}.jpg'))
         np.save(osp.join(dst_path, 'normed'), h)
         print('\tdone')
+    else:
+        raise ValueError('wrong src path')
+
+
+def hoekman(src_path:str, norm=False)->None:
+    ''' Hoekman decomposition and save to file, the hoekman_and_norm() is an older version of this func, and is a subset of this func
+    @in     -src_path       -source path, where should contains 'C3' folder
+    @in     -norm           -normalize or not, default: false
+    '''
+    if 'C3' in os.listdir(src_path):
+        # read C3 file
+        print(f'hoekman on dir (norm={norm}): {src_path}', end='')
+        c3 = psr.read_c3(osp.join(src_path, 'C3'))
+        h = psr.Hokeman_decomposition(c3)
+
+        dst_path = osp.join(src_path, 'Hoekman')
+        fu.mkdir_if_not_exist(dst_path)
+        # np.save(osp.join(dst_path, 'ori'), h)                 # save the unnormalized file
+
+        # normalize
+        if norm:
+            for ii in range(9):
+                h[ii, :, :] = psr.min_max_contrast_median_map(10*np.log10(h[ii, :, :]))
+                # cv2.imwrite(osp.join(dst_path, f'{ii}.jpg'), (h[0, :, :]*255).astype(np.uint8))
+                # plt.hist() can take very long time to process a 2D array, but little time to process a 1D array, so flatten the array if possible 
+                # plt.hist(h[ii, :, :].flatten())                     
+                # plt.savefig(osp.join(dst_path, f'log-hist-{ii}.jpg'))
+
+        # save to file
+        if norm:
+            np.save(osp.join(dst_path, 'normed'), h)
+        else:
+            np.save(osp.join(dst_path, 'unnormed'), h)
+        print('\tdone')
+
     else:
         raise ValueError('wrong src path')
 
@@ -66,7 +101,7 @@ def split_hoekman_file(src_path:str, patch_size=(512, 512), filename='normed.npy
         p_data = whole_data[:, start_y:start_y+p_het, start_x:start_x+p_wes]
         p_folder = osp.join(src_path, str(idx))
         fu.mkdir_if_not_exist(p_folder)
-        np.save(osp.join(p_folder, 'normed'), p_data)
+        np.save(osp.join(p_folder, filename), p_data)
 
         # write image, which is cutted from big picture, not re-generated 
         # p_img = (p_data[0, :, :]*255).astype(np.uint8)
@@ -91,7 +126,8 @@ def split_hoekman_file(src_path:str, patch_size=(512, 512), filename='normed.npy
 
 
 def get_data_mean_std(path, data_type='c3'):
-    ''' get mean and std value of a whole dataset of PolSAR data,
+    ''' deprecated  
+    get mean and std value of a whole dataset of PolSAR data,
         assume that the data distribution is even among all the PolSAR files, which is actually not
     '''
 
@@ -132,16 +168,34 @@ def check_data_value_scale(path):
                 print(f'{root} : mean value is {c3.mean()}')
 
  
-if __name__=='__main__':
-    ''' write mean and std value of the big picture '''
-    path = r'/data/csl/SAR_CD/GF3/data/'
-    for root, _, _ in os.walk(path):
-        if 's2' in root[-2:]:
-            s2 = psr.read_s2(root, is_print=True)
-            mean, std, _ = psr.norm_3_sigma(s2, type='abs')
-            np.save(osp.join(root, 's2_abs_mean'), mean)
-            np.save(osp.join(root, 's2_abs_std'), std)
+def split_train_val_test_SAR_CD(path):
+    ''' Split train, val and test set randomly for SAR_CD dataset,
+    regardless of its orbit direction and sensing time    
+    '''
+    for root, dirs, files in os.walk(path):
+        if re.findall(r'[\x80-\xff]{4}')
 
+
+
+
+if __name__=='__main__':
+    ''' hoekman decomposition '''
+    path = r'data/SAR_CD/RS2/data'
+    for root, dirs, files in os.walk(path):
+        if 'C3' in dirs:
+            # print(root)
+            hoekman(root, norm=False)
+            split_hoekman_file(root, filename='unnormed.npy')
+
+
+    ''' write mean and std value of the big picture '''
+    # path = r'/data/csl/SAR_CD/GF3/data/'
+    # for root, _, _ in os.walk(path):
+    #     if 's2' in root[-2:]:
+    #         s2 = psr.read_s2(root, is_print=True)
+    #         mean, std, _ = psr.norm_3_sigma(s2, type='abs')
+    #         np.save(osp.join(root, 's2_abs_mean'), mean)
+    #         np.save(osp.join(root, 's2_abs_std'), std)
 
 
     ''' test psr.norm_3_sigma() func '''
@@ -151,26 +205,26 @@ if __name__=='__main__':
     # print(c)
 
 
-    path = r'/data/csl/SAR_CD/RS2/data/'
-    check_data_value_scale(path)
+    # path = r'/data/csl/SAR_CD/RS2/data/'
+    # check_data_value_scale(path)
 
-    ''' get statistics of PolSAR raw data '''
-    path = r'/data/csl/SAR_CD/GF3/data/'
-    mean, std = get_data_mean_std(path)
+    # ''' get statistics of PolSAR raw data '''
+    # path = r'/data/csl/SAR_CD/GF3/data/'
+    # mean, std = get_data_mean_std(path)
 
 
 
 
     ''' hoekman decomposition '''
-    # path=r'/home/csl/code/preprocess/data/SAR_CD/GF3/data/E132_N34_日本安芸/降轨/1/20170531/C3'
-    # psr.split_patch(path, transpose=True)
+    # # path=r'/home/csl/code/preprocess/data/SAR_CD/GF3/data/E132_N34_日本安芸/降轨/1/20170531/C3'
+    # # psr.split_patch(path, transpose=True)
 
-    path = r'/data/csl/SAR_CD/RS2/data/'
-    for root, dirs, files in os.walk(path):
-        if 'C3' in dirs:
-            # psr.split_patch(osp.join(root, 'C3'), transpose=True)
-            hoekman_and_norm(root)
-            split_hoekman_file(root)
+    # path = r'/data/csl/SAR_CD/RS2/data/'
+    # for root, dirs, files in os.walk(path):
+    #     if 'C3' in dirs:
+    #         # psr.split_patch(osp.join(root, 'C3'), transpose=True)
+    #         hoekman_and_norm(root)
+    #         split_hoekman_file(root)
 
 
 

@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-22
-Last Modified: 2021-03-25
+Last Modified: 2021-04-02
 	content: 
 '''
 ''' 用于极化SAR的数据集制备，将赵嘉霖标注的文件夹的结构换成我的，要重复用的话可能要改一下代码 
@@ -39,9 +39,9 @@ def extract_time_and_convert(name:str)->str:
 
 
 if __name__ == '__main__':
-    path = r'data/SAR_CD/GF3/label/E139_N35_日本横滨/降轨/1'
+    path = r'/home/csl/code/preprocess/data/SAR_CD/GF3/label/E115_N39_中国河北/升轨/1'
 
-    dates = ['20170719', '20190615']
+    dates = ['20190627', '20170308']
     mkdir_if_not_exist(osp.join(path, dates[0]))
     mkdir_if_not_exist(osp.join(path, dates[1]))
     for root, dirs, files in os.walk(path):
