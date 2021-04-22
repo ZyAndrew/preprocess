@@ -10,6 +10,9 @@ import re
 import os.path as osp
 import time
 import shutil
+import os
+import os.path as osp
+import glob
 
 import cv2
 import numpy as np
@@ -17,6 +20,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 from sklearn.decomposition import PCA, IncrementalPCA
 from numpy import ndarray
+import tqdm
 
 from mylib import polSAR_utils as psr
 from mylib import file_utils as fu
@@ -93,9 +97,30 @@ def split_hoekman_file(src_path:str, patch_size=(512, 512), filename='normed.npy
     print('all splitted')
 
 
+def flatten_directory(path: str):
+    ''' flatten hierarchical directory '''
+    src_path = path.replace('label', 'data')
+    pngs = glob.glob(osp.join(path, '*.png'))
+    for png in pngs:
+        png = osp.basename(png)
+        loc = re.findall(r'[a-z]+', png)[0]
+        date = re.findall(r'\d{8}', png)[0]
+        idx = re.findall(r'_(\d{3}).', png)[0]
+        idx = idx.strip('0') if idx.strip('0') else '0'
+
+        src_file_path = osp.join(src_path, loc, date, 'uni_rot', idx, 'unnormed.mat')
+        dst_file_path = osp.join(path.replace('label', 'unnormed'), png.replace('png', 'npy'))
+        fu.mkdir_if_not_exist(path.replace('label', 'unnormed'))
+        print(f'copy {src_file_path} to {dst_file_path}')
+        file = load_uni_rot_mat_file(src_file_path)
+        np.save(dst_file_path, file)
+
+
 def load_uni_rot_mat_file(path: str) -> ndarray:
-    ''' load uniform rotation matrix file '''
-    uni_rot = scipy.io.loadmat(osp.join(path, 'unnormed.mat'))
+    ''' load uniform rotation matrix file and do a few preprocessing'''
+    if not path.endswith('unnormed.mat'):
+        path = osp.join(path, 'unnormed.mat')
+    uni_rot = scipy.io.loadmat(path)
     uni_rot_sta = []
 
     for k, v in uni_rot.items():
@@ -113,6 +138,24 @@ def load_uni_rot_mat_file(path: str) -> ndarray:
     uni_rot_sta = np.stack(uni_rot_sta, axis=0)
     return uni_rot_sta
 
+
+def zscore_uni_rot(path: str) -> None:
+    all_files = os.listdir(path)
+    full_data = np.empty((len(all_files), 48, 512, 512))
+    for ii in tqdm.trange(len(all_files)):
+        f = np.load(osp.join(path, all_files[ii]))
+        full_data[ii, ...] = f
+    
+    m = np.mean(full_data, axis=(0, 2, 3))
+    std = np.std(full_data, axis=(0, 2, 3), ddof=1)
+    print(f'mean: {m}, unbiased std: {std}')
+    
+    for ii in tqdm.trange(len(all_files)):
+        src_path = osp.join(path, all_files[ii])
+        f = np.load(src_path)
+        dst_path = src_path.replace('unnormed', 'zscored')
+        np.save(dst_path, )
+        
 
 def standardize_uni_rot(path: str) -> None:
     ''' standardize the uniform PolSAR rotation theory params'''
@@ -135,11 +178,12 @@ def standardize_uni_rot(path: str) -> None:
         if 'unnormed.mat' in files:
             uni_rot_sta = load_uni_rot_mat_file(root)
             idx += 1
+            var_now = mathlib.var_with_known_mean(uni_rot_sta, mean=m, axis=(1, 2), ddof=1)
             
 
     var += np.std(uni_rot_sta, axis=(1, 2), keepdims=True)
 
-    uni_rot_sta = (uni_rot_sta - m) / std
+    # uni_rot_sta = (uni_rot_sta - m) / std
 
     # # hist of stardardized data
     # for ii in range(uni_rot_sta.shape[0]):
@@ -169,9 +213,17 @@ def PCA_uni_rot(path: str) -> None:
 
 
 if __name__=='__main__':
-    # ''' standardize uni_rot file '''
-    path = r'data/PolSAR_building_det/data/'
-    standardize_uni_rot(path)
+    ''' zscore_uni_rot '''
+    path = r'data/PolSAR_building_det/unnormed/GF3'
+    zscore_uni_rot(path)
+
+    ''' flatten_directory '''
+    # path = r'data/PolSAR_building_det/label/RS2'
+    # flatten_directory(path)
+
+    ''' standardize uni_rot file '''
+    # path = r'data/PolSAR_building_det/data/'
+    # standardize_uni_rot(path)
 
     ''' transform standardized uni_rot data using PCA '''
     # path = r'data/PolSAR_building_det/data/'
