@@ -1,8 +1,8 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-04-22
-Last Modified: 2021-04-22
-	content: 
+Last Modified: 2021-04-25
+	content: 将郭浩文分类号的训练、验证、测试集总结成 .txt 文件的格式
 '''
 import os
 import os.path as osp

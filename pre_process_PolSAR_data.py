@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-25
-Last Modified: 2021-04-19
+Last Modified: 2021-04-25
 '''
 ''' 预处理极化SAR数据
     1) 将一整张图分成多个小 patch 
@@ -166,16 +166,6 @@ def check_data_value_scale(path):
             c3 = psr.read_c3(root, out='save_space')
             if c3.mean()>0:
                 print(f'{root} : mean value is {c3.mean()}')
-
- 
-def split_train_val_test_SAR_CD(path):
-    ''' Split train, val and test set randomly for SAR_CD dataset,
-    regardless of its orbit direction and sensing time    
-    '''
-    for root, dirs, files in os.walk(path):
-        if re.findall(r'[\x80-\xff]{4}')
-
-
 
 
 if __name__=='__main__':

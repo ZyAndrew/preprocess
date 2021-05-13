@@ -1,10 +1,10 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-23
-Last Modified:2021-01-25
+Last Modified: 2021-04-25
 '''
 ''' 重命名 极化SAR数据的目录，方便后续处理
-    1) 目录名字仅保留时间信息，其余的信息打包成一个 .txt 文件 
+    1) 目录名字仅保留时间信息，其余的产品信息打包成一个 .txt 文件 
 '''
 import os
 import re
