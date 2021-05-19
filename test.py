@@ -1,29 +1,38 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-02-01
-Last Modified: 2021-04-23
+Last Modified: 2021-05-19
 	content: 
 '''
 import os
 import os.path as osp
 
-path = r'data/PolSAR_building_det'
-for root, _, files in os.walk(path):
-    if 'standardized.npy' in files:
-        full_filename = osp.join(root, 'standardized.npy')
-        print(f'delete {full_filename}')
-        os.remove(full_filename)
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+
+from mylib import polSAR_utils as psr
+from mylib import mathlib
+
+save_dir = r'/home/csl/code/preprocess/tmp'
+
+if __name__ == '__main__':
+	path = r'/home/csl/code/preprocess/data/MGGF3jihuanBC20210427/GF3_KAS_QPSI_024808_W116.2_N37.0_20210427_L2_AHV_L20005617966'
+	s4 = psr.read_c3_GF3_L2(path, is_print=True)
+
+	# for ii in range(4):
+	# 	data = s4[ii, ...]
+
+	# 	# plt.hist(data.flatten(), 256)
+	# 	# plt.savefig(osp.join(save_dir, f'{ii}_hist.png'))
+	# 	# plt.clf()
+
+	# 	cv2.imwrite(osp.join(save_dir, f'{ii}_img.png'), (mathlib.min_max_map(data)*255).astype(np.uint8))
+
+	s4 = s4[:, 10000:10500, 10000:10500]
+	rgb = psr.rgb_by_s2(s4, type='sinclair', if_log=False)
+	# plt.hist()
+	cv2.imwrite(osp.join(save_dir, f'sinclari.png'), cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB))
 
 
-# path = r'/home/csl/code/preprocess/data/SAR_CD/GF3/'
 
-# cnt = 0
-# with open(osp.join(path, 'train.txt'), 'w') as f:
-#     for root, dirs, files in os.walk(path):
-#         for file in files:
-#             if '-change.png' in file:
-#                 rel_path = osp.join(root, file).replace(path, '')
-#                 f.write(rel_path+'\n')
-#                 cnt += 1
-
-# print(f'totally {cnt} files')
