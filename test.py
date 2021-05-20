@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-02-01
-Last Modified: 2021-05-19
+Last Modified: 2021-05-20
 	content: 
 '''
 import os
@@ -17,6 +17,8 @@ from mylib import mathlib
 save_dir = r'/home/csl/code/preprocess/tmp'
 
 if __name__ == '__main__':
+
+	''' test read_c3_GF3_L2 and rgb_by_s2 funcs '''
 	path = r'/home/csl/code/preprocess/data/MGGF3jihuanBC20210427/GF3_KAS_QPSI_024808_W116.2_N37.3_20210427_L2_AHV_L20005617967'
 	s4 = psr.read_c3_GF3_L2(path, is_print=True)
 

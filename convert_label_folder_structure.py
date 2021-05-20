@@ -1,11 +1,10 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-22
-Last Modified: 2021-04-02
+Last Modified: 2021-05-20
 	content: 
 '''
 ''' 用于极化SAR的数据集制备，将赵嘉霖标注的文件夹的结构换成我的，要重复用的话可能要改一下代码 
-last modefied: 2020-01-25
 '''
 
 import shutil 
