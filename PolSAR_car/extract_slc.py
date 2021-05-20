@@ -111,7 +111,7 @@ from mylib import file_utils as fu
 
 
 ''' stage 3, extract ROI area from GF3 data'''
-dst_folder = r'/home/csl/code/preprocess/PolSAR_car/ship'
+dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/ship'
 paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
 locations = [r'E130_N34_日本鞍手/降轨/1', r'E139_N35_日本横滨/降轨/1']
 times = [[20190602, 20170607, 20190602], [20190615]]
