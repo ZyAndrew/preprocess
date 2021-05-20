@@ -4,6 +4,7 @@ Created Date: 2021-05-10
 Last Modified: 2021-05-20
 	content: extract data from capella raw data, perform radiometric 
     correction, WGS 84 projection, and save the pauliRGB images
+  note: need `solaris` environment
 '''
 
 import os

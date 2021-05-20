@@ -16,8 +16,6 @@ from mylib import polSAR_utils as psr
 
 TMP_DIR = r'/home/csl/code/preprocess/tmp'
 
-
-
 if __name__ == '__main__':
     path = r'/home/csl/code/preprocess/PolSAR_car/data/ship/E139_N35_日本横滨/降轨/1/20190615/1'
     save_path = r'/home/csl/code/preprocess/tmp'

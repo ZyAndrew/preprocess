@@ -2,7 +2,9 @@
 Author: Shuailin Chen
 Created Date: 2021-05-10
 Last Modified: 2021-05-20
-  content: data post-processing
+  content: data post-processing.
+            1) convert s2 data of SN6 to c3 data
+            2) extract extract ROI area from GF3 s2 data
 '''
 
 import os
@@ -30,7 +32,7 @@ for tm in os.listdir(path):
         cv2.imwrite(osp.join(dst_path, 'PauliRGB.png'), cv2.cvtColor((255*pauli).astype(np.uint8), cv2.COLOR_BGR2RGB))
 
 
-''' extract ROI area from GF3 data'''
+''' extract ROI area from GF3 s2 data'''
 # dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/ship'
 # paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
 # locations = [r'E130_N34_日本鞍手/降轨/1', r'E139_N35_日本横滨/降轨/1']
