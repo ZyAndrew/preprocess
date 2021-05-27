@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-05-10
-Last Modified: 2021-05-20
+Last Modified: 2021-05-27
   content: extract data from capella raw data, perform radiometric 
     correction, WGS 84 projection, and save SLC data, and extract the ROI area of SN6 and GF3 data
 '''
@@ -110,12 +110,27 @@ from mylib import file_utils as fu
 #         cv2.imwrite(osp.join(dst_folder, 'pauli.png'), pauli_roi)
 
 
-''' stage 3, extract ROI area from GF3 data'''
-dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/ship'
+''' stage 3, extract ROI area (car and ship) from GF3 data'''
+# dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/ship'
+# paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
+# locations = [r'E130_N34_日本鞍手/降轨/1', r'E139_N35_日本横滨/降轨/1']
+# times = [[20190602, 20170607, 20190602], [20190615]]
+# rois = [[[3660, 2491, 49, 74], [3743, 2426, 69, 66], [3812, 2449, 62, 58]], [[1436, 807, 185, 137]]]
+# for loc, times_, rois_ in zip(locations, times, rois):
+#     for tm, roi in zip(times_, rois_):
+#         src_path = osp.join(paren_folder, loc, str(tm), r'C3')
+#         dst_path = osp.join(dst_folder, loc, str(tm), r'C3')
+#         if osp.exists(dst_path):
+#             dst_path = osp.join(osp.split(dst_path)[0], r'2', r'C3')
+#         psr.exact_patch_C3(src_path, roi, dst_path)
+
+
+''' stage 4, extract ROI area (building) from GF3 data'''
+dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/building'
 paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
-locations = [r'E130_N34_日本鞍手/降轨/1', r'E139_N35_日本横滨/降轨/1']
-times = [[20190602, 20170607, 20190602], [20190615]]
-rois = [[[3660, 2491, 49, 74], [3743, 2426, 69, 66], [3812, 2449, 62, 58]], [[1436, 807, 185, 137]]]
+locations = [r'E139_N35_日本横滨/降轨/1']
+times = [[20190615]]
+rois = [[[1337, 1721, 354, 316]]]
 for loc, times_, rois_ in zip(locations, times, rois):
     for tm, roi in zip(times_, rois_):
         src_path = osp.join(paren_folder, loc, str(tm), r'C3')
@@ -123,5 +138,4 @@ for loc, times_, rois_ in zip(locations, times, rois):
         if osp.exists(dst_path):
             dst_path = osp.join(osp.split(dst_path)[0], r'2', r'C3')
         psr.exact_patch_C3(src_path, roi, dst_path)
-
 

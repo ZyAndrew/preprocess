@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-01-25
-Last Modified: 2021-04-25
+Last Modified: 2021-05-27
 '''
 ''' 预处理极化SAR数据
     1) 将一整张图分成多个小 patch 
@@ -170,6 +170,13 @@ def check_data_value_scale(path):
 
 if __name__=='__main__':
     ''' hoekman decomposition '''
+    path = r'data/SAR_CD/GF3/data'
+    for root, dirs, files in os.walk(path):
+        if 'C3' in dirs:
+            # print(root)
+            hoekman(root, norm=False)
+            split_hoekman_file(root, filename='unnormed.npy')
+
     path = r'data/SAR_CD/RS2/data'
     for root, dirs, files in os.walk(path):
         if 'C3' in dirs:
