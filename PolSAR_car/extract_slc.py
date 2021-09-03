@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-05-10
-Last Modified: 2021-05-27
+Last Modified: 2021-06-20
   content: extract data from capella raw data, perform radiometric 
     correction, WGS 84 projection, and save SLC data, and extract the ROI area of SN6 and GF3 data
 '''
@@ -15,6 +15,7 @@ import cv2
 
 from mylib import polSAR_utils as psr
 from mylib import file_utils as fu
+from mylib import image_utils as iu
 
 # import solaris.preproc.pipesegment as pipesegment
 # import solaris.preproc.label as label
@@ -126,16 +127,47 @@ from mylib import file_utils as fu
 
 
 ''' stage 4, extract ROI area (building) from GF3 data'''
-dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/building'
-paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
-locations = [r'E139_N35_日本横滨/降轨/1']
-times = [[20190615]]
-rois = [[[1337, 1721, 354, 316]]]
-for loc, times_, rois_ in zip(locations, times, rois):
-    for tm, roi in zip(times_, rois_):
-        src_path = osp.join(paren_folder, loc, str(tm), r'C3')
-        dst_path = osp.join(dst_folder, loc, str(tm), r'C3')
-        if osp.exists(dst_path):
-            dst_path = osp.join(osp.split(dst_path)[0], r'2', r'C3')
-        psr.exact_patch_C3(src_path, roi, dst_path)
+# dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/building'
+# paren_folder = r'/home/csl/code/preprocess/data/SAR_CD/GF3/data'
+# locations = [r'E139_N35_日本横滨/降轨/1']
+# times = [[20190615]]
+# rois = [[[1337, 1721, 354, 316]]]
+# for loc, times_, rois_ in zip(locations, times, rois):
+#     for tm, roi in zip(times_, rois_):
+#         src_path = osp.join(paren_folder, loc, str(tm), r'C3')
+#         dst_path = osp.join(dst_folder, loc, str(tm), r'C3')
+#         if osp.exists(dst_path):
+#             dst_path = osp.join(osp.split(dst_path)[0], r'2', r'C3')
+#         psr.exact_patch_C3(src_path, roi, dst_path)
 
+
+
+''' stage 5, extract supplementary ROI area (building) from GF3 data'''
+dst_folder = r'/home/csl/code/preprocess/PolSAR_car/data/building'
+parent_folder = r'/home/csl/code/preprocess/data/云南地震配准GF3数据'
+products = [r'GF3_SAY_QPSI_010060_E99.9_N25.6_20180708_L1A_AHV_L10003309961',
+            r'GF3_KAS_QPSI_025232_E99.8_N25.7_20210526_L1A_AHV_L10005666941'
+            ]
+rois = [[6824, 2961, 227, 238], [6802, 321, 128, 130]]
+for product, roi in zip(products, rois):
+    src_path = osp.join(parent_folder, product)
+    c3_path = osp.join(src_path, r'C3')
+    # s2 = psr.read_s2(src_path, is_print=True)
+    # pauli = psr.rgb_by_s2(s2, if_mask=True)
+    # iu.save_image_by_cv2(pauli, dst_path=osp.join(src_path, 'pauli_s2.jpg'))
+    
+    # # c3 = psr.s22c3(s2=s2)
+    # c3 = psr.read_c3(c3_path, is_print=True)
+
+    # t3 = psr.c32t3(c3=c3)
+    # pauli = psr.rgb_by_t3(t3, if_mask=True)
+    # iu.save_image_by_cv2(pauli, osp.join(src_path, 'pauli_t3.jpg'))
+    
+    # pauli = psr.rgb_by_c3(c3, if_mask=True)
+    # iu.save_image_by_cv2(pauli, dst_path=osp.join(c3_path, 'pauli.jpg'))
+    # psr.write_c3(c3_path, c3, is_print=True)
+
+    patch_path = osp.join(src_path, r'patch')
+    patch_c3_path = osp.join(patch_path, r'C3')
+    psr.exact_patch_s2(src_path, roi, patch_path, if_mask=True)
+    psr.exact_patch_C3(c3_path, roi, patch_c3_path, if_mask=True)
