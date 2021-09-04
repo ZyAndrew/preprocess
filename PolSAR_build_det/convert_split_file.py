@@ -46,7 +46,7 @@ def check_npy_split(split_folder, npy_folder):
                 dst_split = None
                 for split_, list_ in splits.items():
                     if osp.splitext(file)[0] in splits[split_]:
-                        dst_nsplit =  split_
+                        dst_split =  split_
                         break
 
                 if dst_split is None:
