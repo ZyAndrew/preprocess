@@ -17,6 +17,9 @@ import numpy as np
 import mylib.image_utils as iu
 import mylib.labelme_utils as lu
 from PIL import Image
+from time import time
+
+from ImageSegmentation import seg
 
 
 def read_label_png(src_path:str, check_path=True)->np.ndarray:
@@ -40,50 +43,67 @@ def read_label_png(src_path:str, check_path=True)->np.ndarray:
     return label_idx
 
 
+def get_slic_mask(img_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
+
+    img_paths = os.listdir(img_dir)
+    print(f'totally {len(img_paths)} images')
+    real_segments = []
+    for ii, img_path in enumerate(img_paths):
+        if osp.splitext(img_path)[1] != '.tif':
+            continue
+        img_path = osp.join(img_dir, img_path)
+        img = cv2.cvtColor(cv2.imread(img_path, -1), 
+                            cv2.COLOR_BGR2RGB)
+
+        # read mask
+        mask_path = img_path.replace(img_dir, mask_dir).replace('tif', 'png') \
+                            .replace('SAR-Intensity', 'PS-RGB')
+        valid_mask = read_label_png(mask_path, check_path=False)
+        valid_mask = valid_mask > 0
+
+        # maskSLIC
+        m_slic = segmentation.slic(img, n_segments=n_segments,
+                                    mask=valid_mask, start_label=1, convert2lab=True, sigma=5)
+        m_slic_bound = segmentation.mark_boundaries(img, m_slic)
+
+        real_segments.append(len(np.unique(m_slic)))
+        print(f'{ii}: SLIC actually #segments: {len(np.unique(m_slic))}')
+        
+        dst_mask_path = osp.join(dst_mask_dir, img_path.replace('tif', 'png')\
+                                            .replace(img_dir, dst_mask_dir))
+        print(f'{ii}: saving {dst_mask_path}')
+        iu.save_image_by_cv2(m_slic, dst_mask_path)
+
+        if tmp_dir is not None:
+            iu.save_image_by_cv2(img, osp.join(tmp_dir, 'img.jpg'))
+            iu.save_image_by_cv2(valid_mask, osp.join(tmp_dir,
+                                                    'valid_mask.jpg'))
+            iu.save_image_by_cv2(m_slic_bound, osp.join(tmp_dir,
+                                                    'mslic_mask.jpg'))
+
+    assert len(real_segments) == len(img_paths)
+    real_segments = np.array(real_segments)
+    print(f'#segments: mean: {real_segments.mean()}, std: {real_segments.std()}')
+        
+
 
 if __name__ == '__main__':
     tmp_dir = r'/home/csl/code/preprocess/tmp2'
     img_dir = r'data/SN6_full/SAR-PRO'
-    img_dir = r'data/SN6_full_sinclair'
-    mask_dir = r'/home/csl/code/preprocess/data/SN6_full_mask'
+    mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/label_mask'
+    dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/slic_mask'
     n_segments = 100
 
-    # Input data
-    # img = data.immunohistochemistry()
-    img_path = r'data/SN6_full/SAR-PRO/SN6_Train_AOI_11_Rotterdam_SAR-Intensity_20190804111224_20190804111453_tile_8683.tif'
-    img_path = r'data/SN6_full_sinclair/SN6_Train_AOI_11_Rotterdam_SAR-Intensity_20190804111224_20190804111453_tile_8683.tif'
-    print(f'reading {img_path}')
-    img = cv2.imread(img_path, -1)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    iu.save_image_by_cv2(img, osp.join(tmp_dir, 'img.jpg'))
+    get_slic_mask(img_dir, dst_mask_dir, tmp_dir=tmp_dir,
+                n_segments=n_segments)
 
-    # read mask
-    mask_path = img_path.replace(img_dir, mask_dir).replace('tif', 'png') \
-                        .replace('SAR-Intensity', 'PS-RGB')
-    valid_mask = read_label_png(mask_path, check_path=False)
-    valid_mask = valid_mask > 0
-    iu.save_image_by_cv2(valid_mask, osp.join(tmp_dir, 'valid_mask.jpg'))
-
-
-    # Compute a mask
-    lum = color.rgb2gray(img)
-    # iu.save_image_by_cv2(lum, osp.join(tmp_dir, 'gray.jpg'))
-    # mask = morphology.remove_small_holes(
-    #         morphology.remove_small_objects(lum < 0.7, 500), 500)
-    # iu.save_image_by_cv2(mask, osp.join(tmp_dir, 'rm_small_hole.jpg'))
-
-    # mask = morphology.opening(mask, morphology.disk(3))
-    # iu.save_image_by_cv2(mask, osp.join(tmp_dir, 'opening.jpg'))
-
-    # SLIC result
-    # slic = segmentation.slic(img, n_segments=n_segments, start_label=1)
-    # slic_bound = segmentation.mark_boundaries(img, slic)
-    # slic_bound_mask = segmentation.mark_boundaries(slic_bound, mask, color=(1, 0, 0))
-    # iu.save_image_by_cv2(slic_bound, osp.join(tmp_dir, 'slic_mask.jpg'))
-
-    # maskSLIC result
-    m_slic = segmentation.slic(img, n_segments=n_segments, mask=valid_mask, start_label=1, convert2lab=True, sigma=5)
-    m_slic_bound = segmentation.mark_boundaries(img, m_slic)
-    # m_slic_bound_mask = segmentation.mark_boundaries(m_slic_bound, mask, color=(1, 0, 0))
-    print(f'actually #segments: {len(np.unique(m_slic))}')
-    iu.save_image_by_cv2(m_slic_bound, osp.join(tmp_dir, 'mslic_mask.jpg'))
+    # FH
+    # sigma = 5
+    # k = 500
+    # min_size = 100
+    # start_time = time()
+    # fh_seg = seg(img, sigma, k, min_size, osp.join(tmp_dir, 'FH_mask.jpg')) + 1   # start from 1
+    # end_time = time()
+    # fh_bound = segmentation.mark_boundaries(img, fh_seg)
+    # print(f'FH actually #segments: {len(np.unique(fh_seg))}, elapsed time: {end_time-start_time}')
+    # iu.save_image_by_cv2(fh_bound, osp.join(tmp_dir, 'FH.jpg'))
