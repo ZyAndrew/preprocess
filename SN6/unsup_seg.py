@@ -44,12 +44,14 @@ def read_label_png(src_path:str, check_path=True)->np.ndarray:
 if __name__ == '__main__':
     tmp_dir = r'/home/csl/code/preprocess/tmp2'
     img_dir = r'data/SN6_full/SAR-PRO'
+    img_dir = r'data/SN6_full_sinclair'
     mask_dir = r'/home/csl/code/preprocess/data/SN6_full_mask'
-    n_segments = 1000
+    n_segments = 100
 
     # Input data
     # img = data.immunohistochemistry()
     img_path = r'data/SN6_full/SAR-PRO/SN6_Train_AOI_11_Rotterdam_SAR-Intensity_20190804111224_20190804111453_tile_8683.tif'
+    img_path = r'data/SN6_full_sinclair/SN6_Train_AOI_11_Rotterdam_SAR-Intensity_20190804111224_20190804111453_tile_8683.tif'
     print(f'reading {img_path}')
     img = cv2.imread(img_path, -1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -80,7 +82,7 @@ if __name__ == '__main__':
     # iu.save_image_by_cv2(slic_bound, osp.join(tmp_dir, 'slic_mask.jpg'))
 
     # maskSLIC result
-    m_slic = segmentation.slic(img, n_segments=n_segments, mask=valid_mask, start_label=1)
+    m_slic = segmentation.slic(img, n_segments=n_segments, mask=valid_mask, start_label=1, convert2lab=True, sigma=5)
     m_slic_bound = segmentation.mark_boundaries(img, m_slic)
     # m_slic_bound_mask = segmentation.mark_boundaries(m_slic_bound, mask, color=(1, 0, 0))
     print(f'actually #segments: {len(np.unique(m_slic))}')
