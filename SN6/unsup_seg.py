@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-16
-Last Modified: 2021-09-17
+Last Modified: 2021-09-22
 	content: unsupervised segmentation for spacenet6 intensity images
 '''
 
@@ -44,7 +44,10 @@ def read_label_png(src_path:str, check_path=True)->np.ndarray:
 
 
 def get_slic_mask(img_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
-
+    ''' Get superpixel mask using maskSLIC
+    NOTE: this version of maskSLIC only apply mask to seeds, not initialize the seeds in kmeans++ fasion
+    
+    '''
     img_paths = os.listdir(img_dir)
     print(f'totally {len(img_paths)} images')
     real_segments = []
@@ -62,6 +65,8 @@ def get_slic_mask(img_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
         valid_mask = valid_mask > 0
 
         # maskSLIC
+        # NOTE: smoothing is very important for PolSAR images when perform
+        # unsupervised segmentation
         m_slic = segmentation.slic(img, n_segments=n_segments,
                                     mask=valid_mask, start_label=1, convert2lab=True, sigma=5)
         m_slic_bound = segmentation.mark_boundaries(img, m_slic)
@@ -72,7 +77,8 @@ def get_slic_mask(img_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
         dst_mask_path = osp.join(dst_mask_dir, img_path.replace('tif', 'png')\
                                             .replace(img_dir, dst_mask_dir))
         print(f'{ii}: saving {dst_mask_path}')
-        iu.save_image_by_cv2(m_slic, dst_mask_path)
+        lu.lblsave(dst_mask_path, m_slic)
+        # iu.save_image_by_cv2(m_slic, dst_mask_path)
 
         if tmp_dir is not None:
             iu.save_image_by_cv2(img, osp.join(tmp_dir, 'img.jpg'))

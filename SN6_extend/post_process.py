@@ -187,7 +187,7 @@ if __name__ == '__main__':
                     valid_slcs.get(split).append(base_slc)
                 else:
                     valid_slcs[split] = [base_slc]
-                continue
+                break
 
     # write to .txt files
     for split, slcs in valid_slcs.items():
