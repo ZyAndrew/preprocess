@@ -98,19 +98,18 @@ def get_FH_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None,
             bi = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) > 0
             valid_mask = get_valid_mask(bi, kernel_size=5)
 
-        if tmp_dir is not None:
-            fh_seg = seg_FH(img, sigma, k, min_size, osp.join(tmp_dir, 'FH_color_mask.jpg'))
-        else:
-            fh_seg = seg_FH(img, sigma, k, min_size)
+        fh_seg = segmentation.felzenszwalb(img, scale=100, sigma=5, min_size=1000)
 
+        # mask the invalid regions
         fh_seg += 1
         fh_invalid_idx = fh_seg[valid_mask==0]
         val, cnt = np.unique(fh_invalid_idx, return_counts=True)
         invalid_idx = val[np.argmax(cnt)]
-        fh_seg[fh_seg==invalid_idx] == 0
+        fh_seg[fh_seg==invalid_idx] = 0
+        fh_seg[valid_mask==0] = 0
         
-        real_segments.append(len(val))
-        print(f'FH actually #segments: {len(val)}')
+        real_segments.append(len(np.unique(fh_seg)))
+        print(f'FH actually #segments: {len(np.unique(fh_seg))}')
         dst_mask_path = osp.join(dst_mask_dir, img_path.replace('tif', 'png')\
                                             .replace(img_dir, dst_mask_dir))
         print(f'{ii}: saving {dst_mask_path}')
@@ -124,7 +123,7 @@ def get_FH_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None,
             iu.save_image_by_cv2(fh_bound, osp.join(tmp_dir, 'FH.jpg'))
             fh_bound = (fh_bound*255).astype(np.uint8)
             valid_mask = (valid_mask*255).astype(np.uint8)
-            Image.fromarray(fh_bound).save(osp.join(tmp_dir, 'tmp.gif'), format='GIF', append_images=[Image.fromarray(valid_mask)], loop=0, save_all=True, duration=700)
+            Image.fromarray(fh_bound).save(osp.join(tmp_dir, 'tmp.gif'), format='GIF', append_images=[Image.fromarray(valid_mask), Image.fromarray(valid_mask)], loop=0, save_all=True, duration=700)
 
 
 def get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
@@ -187,10 +186,10 @@ def get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, n_segments=100)
 
 if __name__ == '__main__':
     tmp_dir = r'/home/csl/code/preprocess/tmp2'
-    # img_dir = r'data/SN6_full/SAR-PRO'
+    img_dir = r'data/SN6_full/SAR-PRO'
     # mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/label_mask'
     # dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/slic_mask'
-    img_dir = r'data/SN6_full/SAR-ul'
+    # img_dir = r'data/SN6_full/SAR-ul'
     n_segments = 100
 
     # get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None,
@@ -199,4 +198,5 @@ if __name__ == '__main__':
     mask_dir = None
     dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/fh_mask'
     os.makedirs(dst_mask_dir,exist_ok=True)
+    tmp_dir = None
     get_FH_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir)
