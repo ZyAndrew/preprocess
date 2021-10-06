@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-16
-Last Modified: 2021-09-28
+Last Modified: 2021-10-06
 	content: unsupervised segmentation for spacenet6 intensity images
 '''
 
@@ -20,7 +20,7 @@ import mylib.labelme_utils as lu
 from PIL import Image
 from time import time
 
-from ImageSegmentation import seg
+from ImageSegmentation import seg_FH
 
 
 def read_label_png(src_path:str, check_path=True)->np.ndarray:
@@ -67,6 +67,64 @@ def get_valid_mask(img: ndarray, kernel_size=5):
     
     return closed  
 
+
+def get_FH_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, 
+                sigma = 5,
+                k = 500,
+                min_size = 100):
+    ''' Felzenszwalb & Huttenlocher's segmentation method based on graph, 
+    http://cs.brown.edu/people/pfelzens/segment/
+    '''
+    
+    img_paths = os.listdir(img_dir)
+    print(f'totally {len(img_paths)} images')
+    real_segments = []
+    for ii, img_path in enumerate(img_paths):
+        if osp.splitext(img_path)[1] != '.tif':
+            continue
+        img_path = osp.join(img_dir, img_path)
+        img = cv2.cvtColor(cv2.imread(img_path, -1), 
+                            cv2.COLOR_BGR2RGB)
+
+        # read mask
+        if mask_dir is not None:
+            ''' Read from label mask '''
+            mask_path = img_path.replace(img_dir, mask_dir).replace('tif', 'png') \
+                                .replace('SAR-Intensity', 'PS-RGB')
+            valid_mask = read_label_png(mask_path, check_path=False)
+            valid_mask = valid_mask > 0
+        else:
+            ''' Generate from raw image '''
+            bi = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) > 0
+            valid_mask = get_valid_mask(bi, kernel_size=5)
+
+        if tmp_dir is not None:
+            fh_seg = seg_FH(img, sigma, k, min_size, osp.join(tmp_dir, 'FH_color_mask.jpg'))
+        else:
+            fh_seg = seg_FH(img, sigma, k, min_size)
+
+        fh_seg += 1
+        fh_invalid_idx = fh_seg[valid_mask==0]
+        val, cnt = np.unique(fh_invalid_idx, return_counts=True)
+        invalid_idx = val[np.argmax(cnt)]
+        fh_seg[fh_seg==invalid_idx] == 0
+        
+        real_segments.append(len(val))
+        print(f'FH actually #segments: {len(val)}')
+        dst_mask_path = osp.join(dst_mask_dir, img_path.replace('tif', 'png')\
+                                            .replace(img_dir, dst_mask_dir))
+        print(f'{ii}: saving {dst_mask_path}')
+        lu.lblsave(dst_mask_path, fh_seg)
+
+        if tmp_dir is not None:
+            iu.save_image_by_cv2(img, osp.join(tmp_dir, 'img.jpg'))
+            iu.save_image_by_cv2(valid_mask, osp.join(tmp_dir,
+                                                    'valid_mask.jpg'))
+            fh_bound = segmentation.mark_boundaries(img, fh_seg)
+            iu.save_image_by_cv2(fh_bound, osp.join(tmp_dir, 'FH.jpg'))
+            fh_bound = (fh_bound*255).astype(np.uint8)
+            valid_mask = (valid_mask*255).astype(np.uint8)
+            Image.fromarray(fh_bound).save(osp.join(tmp_dir, 'tmp.gif'), format='GIF', append_images=[Image.fromarray(valid_mask)], loop=0, save_all=True, duration=700)
 
 
 def get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, n_segments=100):
@@ -125,28 +183,20 @@ def get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, n_segments=100)
     assert len(real_segments) == len(img_paths)
     real_segments = np.array(real_segments)
     print(f'#segments: mean: {real_segments.mean()}, std: {real_segments.std()}')
-        
 
 
 if __name__ == '__main__':
     tmp_dir = r'/home/csl/code/preprocess/tmp2'
     # img_dir = r'data/SN6_full/SAR-PRO'
     # mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/label_mask'
+    # dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/slic_mask'
     img_dir = r'data/SN6_full/SAR-ul'
-    mask_dir = None
-    dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/slic_mask'
     n_segments = 100
 
-    get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None,
-                n_segments=n_segments)
+    # get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None,
+    #             n_segments=n_segments)
 
-    # FH
-    # sigma = 5
-    # k = 500
-    # min_size = 100
-    # start_time = time()
-    # fh_seg = seg(img, sigma, k, min_size, osp.join(tmp_dir, 'FH_mask.jpg')) + 1   # start from 1
-    # end_time = time()
-    # fh_bound = segmentation.mark_boundaries(img, fh_seg)
-    # print(f'FH actually #segments: {len(np.unique(fh_seg))}, elapsed time: {end_time-start_time}')
-    # iu.save_image_by_cv2(fh_bound, osp.join(tmp_dir, 'FH.jpg'))
+    mask_dir = None
+    dst_mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/fh_mask'
+    os.makedirs(dst_mask_dir,exist_ok=True)
+    get_FH_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir)

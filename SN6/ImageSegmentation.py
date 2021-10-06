@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-17
-Last Modified: 2021-09-17
+Last Modified: 2021-10-06
 	content: adapted from `https://github.com/sirius-mhlee/graph-based-image-segmentation`
 '''
 
@@ -39,7 +39,7 @@ def generate_mask(ufset, width, height):
     return save_img
 
 
-def seg(img, sigma=0.5, k=500, min_size=50, save_path=None):
+def seg_FH(img, sigma=0.5, k=500, min_size=50, save_path=None):
     ''' main function
     NOTE: it
     
@@ -77,4 +77,4 @@ if __name__ == '__main__':
     img_path = r'data/SN6_full/SAR-PRO/SN6_Train_AOI_11_Rotterdam_SAR-Intensity_20190804111224_20190804111453_tile_8683.tif'
     result_path = r'/home/csl/code/preprocess/tmp2/my_result.jpg'
     img = cv2.imread(img_path)
-    seg(img, result_path, sigma, k, min_size)
+    seg_FH(img, sigma, k, min_size, result_path)

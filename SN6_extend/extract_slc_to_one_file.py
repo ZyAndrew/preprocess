@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-11
-Last Modified: 2021-09-12
+Last Modified: 2021-09-14
 	content: extract 4 channel slc data into one file
 '''
 
@@ -88,4 +88,4 @@ if __name__ == '__main__':
     arglist = [(path, r'SAR-SLC', 'newSLC2', t, tmp_dir)
                 for t in timestamps_unique]
     # GetSLC.parallel(arglist)
-    GetSLC.parallel(arglist, processes=2)
+    GetSLC.parallel(arglist, processes=3)
