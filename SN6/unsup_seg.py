@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-16
-Last Modified: 2021-10-06
+Last Modified: 2021-10-07
 	content: unsupervised segmentation for spacenet6 intensity images
 '''
 
@@ -19,8 +19,6 @@ import mylib.image_utils as iu
 import mylib.labelme_utils as lu
 from PIL import Image
 from time import time
-
-from ImageSegmentation import seg_FH
 
 
 def read_label_png(src_path:str, check_path=True)->np.ndarray:
