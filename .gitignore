@@ -3,3 +3,10 @@ data
 tmp
 tmp2
 tmp3
+
+__pycache__/
+
+*.pkl
+*.pkl.json
+*.log.json
+*.pth
