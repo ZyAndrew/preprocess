@@ -2,7 +2,7 @@
 Author: Shuailin Chen
 Created Date: 2021-09-04
 Last Modified: 2021-09-04
-	content: further pro
+	content: further process the split files
 '''
 
 import os
@@ -63,5 +63,6 @@ def check_npy_split(split_folder, npy_folder):
 if __name__ == '__main__':
     split_folder = r'data/ade20k/sar_building/split'
     npy_folder = r'data/ade20k/sar_building/npy'
+    npy_folder = r'data/ade20k/sar_building/annotations'
     # rm_ext(split_folder)
     check_npy_split(split_folder, npy_folder)
