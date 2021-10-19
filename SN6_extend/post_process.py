@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-12
-Last Modified: 2021-09-17
+Last Modified: 2021-10-18
 	content: post-processing, including:
         1. generate PauliRGB, 
         2. remove invalid slc files
