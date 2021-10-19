@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-10-18
-Last Modified: 2021-10-18
+Last Modified: 2021-10-19
 	content: tile the train-test split according to geo-coordinates specified by 王宇轩, not by the official intructions
 '''
 
@@ -10,14 +10,25 @@ import os
 import os.path as osp
 import mylib.file_utils as fu
 
-def geo_tile_SN6_extend(SAR_dir, geo_thres):
+from merge_duplicate_label import read_label_png
+
+
+def geo_tile_SN6_extend(ori_dir, new_dir, geo_thres):
+    
+    proj_list = []
+    for file in os.listdir(ori_dir):
+        data = gdal.Open(osp.join(ori_dir, file))
+        proj = data.GetGeoTransform()
+        proj_list.append(proj[0])
+
+    proj_list = sorted(proj_list)
 
     train_list, test_list = [], []
-    for file in os.listdir(SAR_dir):
+    for file in os.listdir(new_dir):
         if not file.endswith('.tif'):
             continue
 
-        data = gdal.Open(osp.join(SAR_dir, file))
+        data = gdal.Open(osp.join(new_dir, file))
         proj = data.GetGeoTransform()
         if proj[0] <= geo_thres:
             train_list.append(file)
@@ -29,7 +40,8 @@ def geo_tile_SN6_extend(SAR_dir, geo_thres):
 
 
 if __name__ == '__main__':
-    SAR_dir =r'data/SN6_extend/tile_slc/900'
+    ori_dir = r'data/SN6_full/SAR-Intensity'
+    new_dir = r'data/SN6_extend/tile_slc/900'
     # SAR_dir = r'data/SN6_full/SAR-Intensity'
     split_dir = r'data/SN6_sup/split'
     geo_thres = 594906.9818506762

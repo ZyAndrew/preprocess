@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-10-18
-Last Modified: 2021-10-18
+Last Modified: 2021-10-19
 	content: merge duplicated labels that originally appear both in train and val split, and assign it to train split
 '''
 
@@ -17,7 +17,7 @@ from copy import deepcopy
 import json
 
 
-def read_label_png(src_path:str, check_path=True)->np.ndarray:
+def read_label_png(src_path:str, check_path=False)->np.ndarray:
     '''读取 label.png 包含的label信息，这个文件的格式比较复杂，直接读取会有问题，需要特殊处理
 
     Args:
