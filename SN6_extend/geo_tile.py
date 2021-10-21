@@ -31,7 +31,7 @@ def geo_tile_SN6_extend(ori_dir, new_dir, geo_min_thres):
 
         data = gdal.Open(osp.join(new_dir, file))
         proj = data.GetGeoTransform()
-        if proj[0] <= geo_min_thres and proj[0] >= geo_max_thres:
+        if proj[0] <= geo_min_thres or proj[0] >= geo_max_thres:
             train_list.append(file)
         else:
             test_list.append(file)

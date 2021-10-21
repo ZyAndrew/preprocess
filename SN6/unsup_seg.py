@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-09-16
-Last Modified: 2021-10-07
+Last Modified: 2021-10-19
 	content: unsupervised segmentation for spacenet6 intensity images
 '''
 
@@ -183,6 +183,7 @@ def get_slic_mask(img_dir, mask_dir, dst_mask_dir, tmp_dir=None, n_segments=100)
 
 
 if __name__ == '__main__':
+    ''' SN6_full '''
     tmp_dir = r'/home/csl/code/preprocess/tmp2'
     img_dir = r'data/SN6_full/SAR-PRO'
     # mask_dir = r'/home/csl/code/preprocess/data/SN6_sup/label_mask'

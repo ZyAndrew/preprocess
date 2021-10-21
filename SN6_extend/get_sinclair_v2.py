@@ -55,7 +55,9 @@ def get_sinclair_v2(slc_dir: str, dst_dir: str, pauli_dir, dst_mask_dir, mask_di
     shutil.copy(osp.join(mask_dir, f'valid_val.txt'),
                 osp.join(dst_mask_dir, f'valid_val.txt'))
 
-    for slc in os.listdir(slc_dir):
+    for ii, slc in enumerate(os.listdir(slc_dir)):
+        if not slc.endswith('.tif'):
+            continue
         slc_data = tifffile.imread(osp.join(slc_dir, slc))
         crs = re_find_only_one(r'(\d{6}_\d{7})\.tif', slc)
 
@@ -114,7 +116,7 @@ def get_sinclair_v2(slc_dir: str, dst_dir: str, pauli_dir, dst_mask_dir, mask_di
         dst_mask_path = osp.join(dst_mask_dir, mask_split, mask_filename)
         lu.lblsave(dst_mask_path, mask_data,
                     colormap=np.array([[0, 0, 0], [255, 255, 255]]))
-        print(f'writted {dst_img_path}\nPauliRGB: {osp.join(pauli_dir, slc.replace("tif", "jpg"))}\norient: {orients[timestamp]}\nmax intensity: {dst_slc_data.max()}')
+        print(f'{ii}:\nwritted {dst_img_path}\nPauliRGB: {osp.join(pauli_dir, slc.replace("tif", "jpg"))}\norient: {orients[timestamp]}\nmax intensity: {dst_slc_data.max()}')
 
         if tmp_dir is not None:
             tmp_img_path = osp.join(tmp_dir, 'sinclairv2.jpg')
